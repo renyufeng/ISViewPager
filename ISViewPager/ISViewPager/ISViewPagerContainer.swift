@@ -8,12 +8,12 @@
 
 import Foundation
 import UIKit
-
+ // MARK: - ViewPager Container TitleBar ScrollType
 public enum UIViewPagerTitleBarScrollType{
     case UIViewControllerMenuScroll
     case UIViewControllerMenuFixed
 }
-
+// MARK: - ViewPager Show Options
 public enum UIViewPagerOption {
     case TitleBarHeight(CGFloat)
     case TitleBarBackgroudColor(UIColor)
@@ -28,6 +28,7 @@ public enum UIViewPagerOption {
     case BottomlineHeight(CGFloat)
 }
 
+ // MARK: - Scroll view delegate
 
 class InnderScrollViewDelegate:NSObject, UIScrollViewDelegate{
     var startLeft:CGFloat = 0.0
@@ -38,12 +39,12 @@ class InnderScrollViewDelegate:NSObject, UIScrollViewDelegate{
     override init() {
         super.init()
     }
-    func onScorllToLeftEdage(){
+    func didScorllToLeftEdage(){
         if let scrollToLeftEdageFun = scrollToLeftEdageFun{
             scrollToLeftEdageFun()
         }
     }
-    func onScorllToRightEdage(){
+    func didScorllToRightEdage(){
         if let scrollToRightRightEdageFun = scrollToRightRightEdageFun{
             scrollToRightRightEdageFun();
         }
@@ -66,14 +67,14 @@ class InnderScrollViewDelegate:NSObject, UIScrollViewDelegate{
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let bottomEdge = scrollView.contentOffset.x + scrollView.frame.size.width;
         if (bottomEdge >= scrollView.contentSize.width && bottomEdge == startRight) {
-            self.onScorllToLeftEdage()
+            self.didScorllToLeftEdage()
         }
         if (scrollView.contentOffset.x == 0&&startLeft == 0) {
-            self.onScorllToRightEdage()
+            self.didScorllToRightEdage()
         }
     }
 }
-
+ // MARK: - ViewPager Container
 open class ISViewPagerContainer:UIViewController{
     let titles:[String]
     let viewPages:[UIViewController]
@@ -92,16 +93,18 @@ open class ISViewPagerContainer:UIViewController{
     private let contentView = UIScrollView()
     private let titleBar = UIScrollView()
     private let indicator = UIView();
+    private let bottomline = UIView();
     private let scrollDelegate = InnderScrollViewDelegate()
     
     private var curIndex=0
     
+   //MARK: - init Function
     public init(titles:[String],viewPages:[UIViewController],options:[UIViewPagerOption]?) {
         self.titles = titles
         self.viewPages = viewPages
         super.init(nibName: nil, bundle: nil)
-        self.scrollDelegate.scrollToLeftEdageFun = self.onScorllToLeftEdage
-        self.scrollDelegate.scrollToRightRightEdageFun = self.onScorllToRightEdage
+        self.scrollDelegate.scrollToLeftEdageFun = self.didScorllToLeftEdage
+        self.scrollDelegate.scrollToRightRightEdageFun = self.didScorllToRightEdage
         self.scrollDelegate.scrollToPageFun = self.scrollIndicator
         if let options = options {
             for option in options{
@@ -132,7 +135,7 @@ open class ISViewPagerContainer:UIViewController{
             }
         }
     }
-    
+   
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -143,40 +146,40 @@ open class ISViewPagerContainer:UIViewController{
         if((UIDevice.current.systemVersion as NSString).doubleValue >= 7.0){
             self.edgesForExtendedLayout = UIRectEdge(rawValue: 0)
         }
+        self.setupUI()
+    }
+    
+    
+    open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        self.layoutUIElement(width: size.width,height:size.height)
+    }
+    
+    func setupUI() {
+        
         switch titleBarScrollType {
         case .UIViewControllerMenuFixed:
             titleItemWidth =  self.view.frame.width/CGFloat(viewPages.count)
-            self.setTitleBar()
-            self.scrollIndicator(index: 0)
-        case .UIViewControllerMenuScroll:
-            self.setTitleBar()
-            self.scrollIndicator(index: 0)
+        case .UIViewControllerMenuScroll: break
         }
+        self.setupUIElement()
+        self.layoutUIElement(width: self.view.frame.width,height: self.view.frame.height)
+        self.scrollIndicator(index: 0)
     }
-    
-    public func onSelectedPage(index:UInt){
-        
-    }
-    public func onScorllToLeftEdage(){
-    }
-    public func onScorllToRightEdage(){
-    }
-    
     func onClickTitle(_ title:UIControl){
         scrollIndicator(index:title.tag)
         contentView.contentOffset = CGPoint(x:CGFloat(title.tag)*contentView.frame.width, y: contentView.contentOffset.y)
     }
     
-    func setTitleBar(){
-        titleBar.frame =  CGRect(x: 0, y:0, width: Int(self.view.frame.width), height: Int(titleBarHeight))
-        titleBar.contentSize = CGSize(width: titleItemWidth*CGFloat(viewPages.count), height: titleBarHeight)
+    func setupUIElement(){
+        
         titleBar.backgroundColor = titleBarBackgroudColor
         titleBar.isPagingEnabled = true;
         titleBar.bounces = false
         titleBar.showsHorizontalScrollIndicator = false;
         
         for i in 0..<titles.count{
-            let titleLabel = UIButton(frame:CGRect(x:CGFloat(i)*titleItemWidth,y:0,width:titleItemWidth,height:titleBarHeight))
+            let titleLabel = UIButton()
             titleLabel.titleLabel?.font = titleFont;
             titleLabel.setTitle(titles[i], for: UIControlState.normal)
             titleLabel.titleLabel?.textAlignment = NSTextAlignment.center
@@ -186,28 +189,40 @@ open class ISViewPagerContainer:UIViewController{
             titleLables.append(titleLabel)
             titleBar.addSubview(titleLabel)
         }
-        let bottomline = UIView(frame:CGRect(x: 0, y: titleBarHeight-bottomlineHeight, width: titleBar.contentSize.width, height: bottomlineHeight))
         bottomline.backgroundColor = bottomlineColor
         titleBar.addSubview(bottomline)
         
-        indicator.frame = CGRect(x: 0, y:titleBarHeight-indicatorHeight, width: titleItemWidth, height: indicatorHeight)
         indicator.backgroundColor = indicatorColor
         titleBar.addSubview(indicator)
         
         self.view.addSubview(titleBar)
         
-        contentView.frame = CGRect(x: 0, y: titleBar.frame.origin.y + titleBar.frame.height, width: self.view.frame.width, height: self.view.frame.height - titleBar.frame.origin.y-titleBar.frame.height)
-        contentView.contentSize = CGSize(width: CGFloat(viewPages.count)*(contentView.frame.width), height: (contentView.frame.height))
+        viewPages.forEach({  contentView.addSubview($0.view) ;self.addChildViewController($0)})
         contentView.delegate = scrollDelegate;
         contentView.isPagingEnabled = true;
         contentView.showsHorizontalScrollIndicator = false;
         self.view.addSubview(contentView)
+    }
+    
+    func layoutUIElement(width:CGFloat, height:CGFloat){
+        
+        titleBar.frame =  CGRect(x: 0, y:0, width:Int(width), height: Int(titleBarHeight))
+        titleBar.contentSize = CGSize(width: titleItemWidth*CGFloat(viewPages.count), height: titleBarHeight)
+        
+        for i in 0..<titleLables.count{
+            let titleLabel = titleLables[i]
+            titleLabel.frame =  CGRect(x:CGFloat(i)*titleItemWidth,y:0,width:titleItemWidth,height:titleBarHeight)
+        }
+        bottomline.frame = CGRect(x: 0, y: titleBarHeight-bottomlineHeight, width: titleBar.contentSize.width, height: bottomlineHeight)
+        indicator.frame = CGRect(x: 0, y:titleBarHeight-indicatorHeight, width: titleItemWidth, height: indicatorHeight)
+        
+        contentView.frame = CGRect(x: 0, y: titleBar.frame.origin.y + titleBar.frame.height, width: self.view.frame.width, height: self.view.frame.height - titleBar.frame.origin.y-titleBar.frame.height)
+        contentView.contentSize = CGSize(width: CGFloat(viewPages.count)*(contentView.frame.width), height: (contentView.frame.height))
+        
         
         for i in 0..<viewPages.count{
             let viewPage = viewPages[i]
             viewPage.view.frame = CGRect(x: CGFloat(i)*contentView.frame.width, y: 0, width: contentView.frame.width, height: contentView.frame.height)
-            contentView.addSubview(viewPage.view)
-            self.addChildViewController(viewPage)
         }
         
     }
@@ -217,8 +232,7 @@ open class ISViewPagerContainer:UIViewController{
         guard rang.contains(index) else {
             return
         }
-        
-        self.onSelectedPage(index: UInt(index))
+        self.didScrollToPage(index: UInt(index))
         
         if curIndex>index{
             if indicator.frame.origin.x-titleItemWidth<titleBar.contentOffset.x {
@@ -239,5 +253,15 @@ open class ISViewPagerContainer:UIViewController{
         })
         
     }
-}
+
+    
+    // MARK: -  handle event
+    public func didScrollToPage(index:UInt){
+    }
+    public func didScorllToLeftEdage(){
+    }
+    public func didScorllToRightEdage(){
+    }
+    
+ }
 
