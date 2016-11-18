@@ -16,6 +16,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        self.window = UIWindow(frame: UIScreen.main.bounds)
+        let titles = ["标题一","标题二","标题三","标题四","标题五","标题六","标题七","标题八","标题九","标题十"]
+        var viewPages = [ViewPager]()
+        for title in titles{
+            let viewpage = ViewPager(title:title)
+            viewPages.append(viewpage)
+        }
+        let pagesOptions:[UIViewPagerOption] = [
+            .TitleBarHeight(50),
+            .TitleBarBackgroudColor(UIColor.white),
+            .TitleBarScrollType(UIViewPagerTitleBarScrollType.UIViewControllerMenuScroll),
+            .TitleFont(UIFont.systemFont(ofSize: 15, weight: 2)),
+            .TitleColor(UIColor.black),
+            .TitleSelectedColor(#colorLiteral(red: 0.9098039269, green: 0.4784313738, blue: 0.6431372762, alpha: 1)),
+            .TitleItemWidth(90),
+            .IndicatorColor(#colorLiteral(red: 0.9098039269, green: 0.4784313738, blue: 0.6431372762, alpha: 1)),
+            .IndicatorHeight(5),
+            .BottomlineColor(#colorLiteral(red: 0.9098039269, green: 0.4784313738, blue: 0.6431372762, alpha: 1)),
+            .BottomlineHeight(1)
+        ]
+        let pages = ISViewPagerContainer(titles: titles, viewPages:viewPages,options: pagesOptions)
+        pages.view.backgroundColor = UIColor.white
+        let baseVc = UINavigationController(rootViewController: pages)
+        baseVc.navigationBar.backgroundColor = #colorLiteral(red: 0.9098039269, green: 0.4784313738, blue: 0.6431372762, alpha: 1)
+        self.window?.rootViewController = baseVc
+        self.window?.makeKeyAndVisible()
         return true
     }
 
