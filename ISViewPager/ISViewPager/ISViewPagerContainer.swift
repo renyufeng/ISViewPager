@@ -153,6 +153,8 @@ open class ISViewPagerContainer:UIViewController{
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         self.layoutUIElement(width: size.width,height:size.height)
+        self.scrollIndicator(index: curIndex)
+        contentView.contentOffset = CGPoint(x:CGFloat(curIndex)*contentView.frame.width, y: contentView.contentOffset.y)
     }
     
     func setupUI() {
@@ -192,6 +194,7 @@ open class ISViewPagerContainer:UIViewController{
         bottomline.backgroundColor = bottomlineColor
         titleBar.addSubview(bottomline)
         
+        indicator.frame = CGRect(x: 0, y:titleBarHeight-indicatorHeight, width: titleItemWidth, height: indicatorHeight)
         indicator.backgroundColor = indicatorColor
         titleBar.addSubview(indicator)
         
@@ -214,17 +217,15 @@ open class ISViewPagerContainer:UIViewController{
             titleLabel.frame =  CGRect(x:CGFloat(i)*titleItemWidth,y:0,width:titleItemWidth,height:titleBarHeight)
         }
         bottomline.frame = CGRect(x: 0, y: titleBarHeight-bottomlineHeight, width: titleBar.contentSize.width, height: bottomlineHeight)
-        indicator.frame = CGRect(x: 0, y:titleBarHeight-indicatorHeight, width: titleItemWidth, height: indicatorHeight)
+       
         
         contentView.frame = CGRect(x: 0, y: titleBar.frame.origin.y + titleBar.frame.height, width: self.view.frame.width, height: self.view.frame.height - titleBar.frame.origin.y-titleBar.frame.height)
         contentView.contentSize = CGSize(width: CGFloat(viewPages.count)*(contentView.frame.width), height: (contentView.frame.height))
-        
         
         for i in 0..<viewPages.count{
             let viewPage = viewPages[i]
             viewPage.view.frame = CGRect(x: CGFloat(i)*contentView.frame.width, y: 0, width: contentView.frame.width, height: contentView.frame.height)
         }
-        
     }
     
     func scrollIndicator(index:Int){
@@ -238,7 +239,7 @@ open class ISViewPagerContainer:UIViewController{
             if indicator.frame.origin.x-titleItemWidth<titleBar.contentOffset.x {
                 titleBar.scrollRectToVisible(CGRect(x: CGFloat(index)*self.titleItemWidth, y:0, width:titleBar.frame.width,height:titleBar.frame.height), animated: true)
             }
-        }else if curIndex<index{
+        }else if curIndex<=index{
             if indicator.frame.origin.x+2*titleItemWidth>titleBar.contentOffset.x + titleBar.frame.width {
                 titleBar.scrollRectToVisible(CGRect(x: CGFloat(index)*self.titleItemWidth, y:0, width:titleBar.frame.width,height:titleBar.frame.height), animated: true)
             }
