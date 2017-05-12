@@ -235,15 +235,12 @@ open class ISViewPagerContainer:UIViewController{
         }
         self.didScrollToPage(index: UInt(index))
         
-        if curIndex>index{
-            if indicator.frame.origin.x-titleItemWidth<titleBar.contentOffset.x {
-                titleBar.scrollRectToVisible(CGRect(x: CGFloat(index)*self.titleItemWidth, y:0, width:titleBar.frame.width,height:titleBar.frame.height), animated: true)
-            }
-        }else if curIndex<=index{
-            if indicator.frame.origin.x+2*titleItemWidth>titleBar.contentOffset.x + titleBar.frame.width {
-                titleBar.scrollRectToVisible(CGRect(x: CGFloat(index)*self.titleItemWidth, y:0, width:titleBar.frame.width,height:titleBar.frame.height), animated: true)
-            }
-        }
+        var offsetX = CGFloat(index) * titleItemWidth + titleItemWidth/2
+        offsetX = offsetX - titleBar.frame.width/2
+        offsetX = min(offsetX,titleBar.contentSize.width - titleBar.frame.width)
+        offsetX = max(offsetX,0)
+        titleBar.setContentOffset(CGPoint(x: offsetX  , y: 0), animated: true)
+     
         let curLabel = titleLables[curIndex]
         curLabel.setTitleColor(titleColor, for: UIControlState.normal)
         curIndex = index;
